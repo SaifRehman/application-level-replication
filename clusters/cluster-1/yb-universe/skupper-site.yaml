@@ -1,0 +1,56 @@
+apiVersion: skupper.io/v2alpha1
+kind: Site
+metadata:
+  name: cluster-1
+  namespace: identity-db
+spec:
+  linkAccess: default
+---
+apiVersion: skupper.io/v2alpha1
+kind: AccessGrant
+metadata:
+  name: c2-access
+  namespace: identity-db
+spec:
+  redemptionsAllowed: 5
+  expirationWindow: 1h
+---
+apiVersion: skupper.io/v2alpha1
+kind: Connector
+metadata:
+  name: yb-masters-c1
+  namespace: identity-db
+spec:
+  routingKey: yb-masters-c1
+  port: 7100
+  selector: app.kubernetes.io/name=yb-master
+---
+apiVersion: skupper.io/v2alpha1
+kind: Connector
+metadata:
+  name: yb-tservers-c1
+  namespace: identity-db
+spec:
+  routingKey: yb-tservers-c1
+  port: 9100
+  selector: app.kubernetes.io/name=yb-tserver
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: yb-masters-c2
+  namespace: identity-db
+spec:
+  routingKey: yb-masters-c2
+  host: yb-masters-c2
+  port: 7100
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: yb-tservers-c2
+  namespace: identity-db
+spec:
+  routingKey: yb-tservers-c2
+  host: yb-tservers-c2
+  port: 9100

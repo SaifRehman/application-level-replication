@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: update-gitops
+  namespace: cicd
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: BACKEND_IMAGE
+      type: string
+    - name: FRONTEND_IMAGE
+      type: string
+    - name: GIT_USER_EMAIL
+      type: string
+      default: ci@identity.demo
+    - name: GIT_USER_NAME
+      type: string
+      default: identity-ci
+  steps:
+    - name: bump
+      image: alpine/git:2.45.2
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -e
+        apk add --no-cache yq
+        git config user.email "$(params.GIT_USER_EMAIL)"
+        git config user.name "$(params.GIT_USER_NAME)"
+        for cluster in cluster-1 cluster-2; do
+          file="clusters/${cluster}/staging/identity/kustomization.yaml"
+          yq -i '(.images[] | select(.name | test("identity-backend$"))).newName = strenv(BACKEND_IMG_NAME)' "$file"
+          yq -i '(.images[] | select(.name | test("identity-backend$"))).newTag  = strenv(BACKEND_IMG_TAG)'  "$file"
+          yq -i '(.images[] | select(.name | test("identity-frontend$"))).newName = strenv(FRONTEND_IMG_NAME)' "$file"
+          yq -i '(.images[] | select(.name | test("identity-frontend$"))).newTag  = strenv(FRONTEND_IMG_TAG)'  "$file"
+        done
+        git add clusters
+        git commit -m "ci: bump images to ${BACKEND_IMG_TAG}/${FRONTEND_IMG_TAG}" || echo "no changes"
+        git push
+      env:
+        - name: BACKEND_IMG_NAME
+          value: "$(params.BACKEND_IMAGE)"
+        - name: BACKEND_IMG_TAG
+          value: "latest"
+        - name: FRONTEND_IMG_NAME
+          value: "$(params.FRONTEND_IMAGE)"
+        - name: FRONTEND_IMG_TAG
+          value: "latest"

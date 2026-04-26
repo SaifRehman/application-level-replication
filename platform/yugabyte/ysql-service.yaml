@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: yugabyte-ysql
+  namespace: identity-db
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: yb-tserver
+  ports:
+    - name: ysql
+      port: 5433
+      targetPort: 5433

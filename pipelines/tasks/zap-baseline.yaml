@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: zap-baseline
+  namespace: cicd
+spec:
+  params:
+    - name: TARGET
+      type: string
+  steps:
+    - name: scan
+      image: ghcr.io/zaproxy/zaproxy:stable
+      script: |
+        #!/bin/sh
+        set -e
+        zap-baseline.py -t $(params.TARGET) -I -m 5 -d

@@ -1,0 +1,65 @@
+replicas:
+  master: 1
+  tserver: 1
+  totalMasters: 1
+
+resource:
+  master:
+    requests:
+      cpu: 0.5
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  tserver:
+    requests:
+      cpu: 0.5
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+
+storage:
+  master:
+    count: 1
+    size: 5Gi
+    storageClass: gp3-csi
+  tserver:
+    count: 1
+    size: 10Gi
+    storageClass: gp3-csi
+
+enableLoadBalancer: false
+istioCompatibility:
+  enabled: false
+
+oldNamingStyle: false
+
+tls:
+  enabled: false
+
+masterAddresses: ""
+
+gflags:
+  master:
+    placement_cloud: "aws"
+    placement_region: "us-east-2"
+    placement_zone: "c2"
+    leader_failure_max_missed_heartbeat_periods: 10
+    replication_factor: 1
+    server_broadcast_addresses: "yb-masters-c2:7100"
+    use_private_ip: "never"
+  tserver:
+    placement_cloud: "aws"
+    placement_region: "us-east-2"
+    placement_zone: "c2"
+    server_broadcast_addresses: "yb-tservers-c2:9100"
+    use_private_ip: "never"
+
+multicluster:
+  createServicePerPod: false
+
+podManagementPolicy: Parallel
+
+securityContext:
+  enabled: false

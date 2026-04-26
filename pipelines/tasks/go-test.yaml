@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: go-test
+  namespace: cicd
+spec:
+  workspaces:
+    - name: source
+  results:
+    - name: coverage-report
+      description: path to cover.out
+  steps:
+    - name: test
+      image: golang:1.24
+      workingDir: $(workspaces.source.path)/backend
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        go test ./... -coverprofile=cover.out -covermode=atomic
+        go vet ./...
+        echo -n "$(workspaces.source.path)/backend/cover.out" > $(results.coverage-report.path)

@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: openshift-gitops
+  namespace: openshift-gitops
+spec:
+  server:
+    route:
+      enabled: true
+      tls:
+        termination: reencrypt
+    insecure: false
+  rbac:
+    defaultPolicy: 'role:admin'
+  resourceCustomizations: |
+    sailoperator.io/Istio:
+      health.lua: |
+        hs = {}
+        hs.status = "Healthy"
+        hs.message = "ok"
+        return hs
+    yugabyte.com/YBUniverse:
+      health.lua: |
+        hs = {}
+        hs.status = "Healthy"
+        hs.message = "ok"
+        return hs

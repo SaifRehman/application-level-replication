@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: xcluster-setup
+  namespace: identity-db
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: yb-admin
+          image: yugabytedb/yugabyte:2.21.1.0-b271
+          command: ["/bin/bash", "-c"]
+          env:
+            - name: LOCAL_MASTER
+              value: "yugabyte-yb-masters:7100"
+            - name: REMOTE_MASTERS
+              valueFrom:
+                configMapKeyRef:
+                  name: xcluster-config
+                  key: remote_masters
+            - name: STREAM_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: xcluster-config
+                  key: stream_name
+          args:
+            - |
+              set -euo pipefail
+              echo "Waiting for table digital_identity to exist on local cluster..."
+              for i in {1..60}; do
+                TABLE_ID=$(./bin/yb-admin -master_addresses ${LOCAL_MASTER} list_tables include_table_id 2>/dev/null | grep "ysql.yugabyte.digital_identity" | awk '{print $NF}' || true)
+                if [ -n "${TABLE_ID:-}" ]; then
+                  echo "Found table id: $TABLE_ID"
+                  break
+                fi
+                echo "table not ready, sleeping 5s ($i/60)"
+                sleep 5
+              done
+              if [ -z "${TABLE_ID:-}" ]; then
+                echo "ERROR: digital_identity table not found"
+                exit 1
+              fi
+              echo "Setting up universe replication: ${STREAM_NAME}"
+              if ./bin/yb-admin -master_addresses ${LOCAL_MASTER} list_universe_replications 2>&1 | grep -q "${STREAM_NAME}"; then
+                echo "stream ${STREAM_NAME} already exists, no-op"
+                exit 0
+              fi
+              ./bin/yb-admin -master_addresses ${LOCAL_MASTER} setup_universe_replication \
+                "${STREAM_NAME}" "${REMOTE_MASTERS}" "${TABLE_ID}"
+              echo "xCluster replication established"

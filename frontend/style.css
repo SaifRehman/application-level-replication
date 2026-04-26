@@ -1,0 +1,70 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f5f5f7;
+  color: #222;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: #1f2937;
+  color: white;
+}
+header h1 { margin: 0; font-size: 1.25rem; }
+.badge {
+  background: #10b981;
+  color: white;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+main {
+  max-width: 960px;
+  margin: 2rem auto;
+  display: grid;
+  gap: 1.5rem;
+  padding: 0 1rem;
+}
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.card h2 { margin-top: 0; }
+form { display: grid; gap: 0.75rem; }
+label { display: grid; gap: 0.25rem; font-size: 0.875rem; color: #4b5563; }
+input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+input:focus { outline: 2px solid #2563eb; outline-offset: -1px; border-color: transparent; }
+.actions { display: flex; gap: 0.5rem; }
+button {
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+button:hover { background: #1d4ed8; }
+button#cancel-edit { background: #6b7280; }
+button#cancel-edit:hover { background: #4b5563; }
+.row { display: flex; align-items: center; justify-content: space-between; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.6rem 0.5rem; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 0.9rem; }
+th { color: #6b7280; font-weight: 600; }
+td button { background: transparent; color: #2563eb; padding: 0.25rem 0.5rem; }
+td button:hover { background: #eff6ff; }
+td button.delete { color: #dc2626; }
+td button.delete:hover { background: #fef2f2; }
+.error { color: #dc2626; margin: 0.25rem 0 0; min-height: 1.2em; font-size: 0.875rem; }

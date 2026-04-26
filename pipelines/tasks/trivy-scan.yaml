@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: trivy-scan
+  namespace: cicd
+spec:
+  params:
+    - name: IMAGE
+      type: string
+  steps:
+    - name: scan
+      image: aquasec/trivy:0.55.0
+      script: |
+        #!/bin/sh
+        set -e
+        trivy image \
+          --exit-code 1 \
+          --severity HIGH,CRITICAL \
+          --ignore-unfixed \
+          --no-progress \
+          $(params.IMAGE)

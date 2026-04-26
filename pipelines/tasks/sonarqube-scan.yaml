@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: sonarqube-scan
+  namespace: cicd
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: SONAR_HOST_URL
+      type: string
+    - name: SONAR_PROJECT_KEY
+      type: string
+      default: identity-backend
+  steps:
+    - name: scan
+      image: sonarsource/sonar-scanner-cli:5.0
+      workingDir: $(workspaces.source.path)/backend
+      env:
+        - name: SONAR_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonarqube-token
+              key: token
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        sonar-scanner \
+          -Dsonar.host.url=$(params.SONAR_HOST_URL) \
+          -Dsonar.projectKey=$(params.SONAR_PROJECT_KEY) \
+          -Dsonar.token=${SONAR_TOKEN} \
+          -Dsonar.qualitygate.wait=true

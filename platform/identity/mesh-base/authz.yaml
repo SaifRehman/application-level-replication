@@ -1,0 +1,15 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: identity-backend-require-api-key
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: identity-backend
+  action: DENY
+  rules:
+    - when:
+        - key: request.headers[x-api-key]
+          notValues:
+            - "demo-key-change-me"

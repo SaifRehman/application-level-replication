@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: buildah-push
+  namespace: cicd
+spec:
+  params:
+    - name: IMAGE
+      type: string
+  steps:
+    - name: push
+      image: quay.io/buildah/stable:v1.36
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        buildah push --storage-driver=vfs --tls-verify=false \
+          $(params.IMAGE) docker://$(params.IMAGE)

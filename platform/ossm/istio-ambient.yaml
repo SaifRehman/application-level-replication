@@ -1,0 +1,37 @@
+apiVersion: sailoperator.io/v1
+kind: Istio
+metadata:
+  name: default
+spec:
+  version: v1.26.8
+  namespace: istio-system
+  profile: openshift-ambient
+  updateStrategy:
+    type: InPlace
+  values:
+    meshConfig:
+      extensionProviders:
+        - name: otel
+          opentelemetry:
+            port: 4317
+            service: otel-collector.opentelemetrycollector.svc.cluster.local
+    pilot:
+      autoscaleEnabled: false
+---
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+spec:
+  version: v1.26.8
+  namespace: istio-cni
+  profile: openshift-ambient
+---
+apiVersion: sailoperator.io/v1alpha1
+kind: ZTunnel
+metadata:
+  name: default
+spec:
+  version: v1.26.8
+  namespace: ztunnel
+  profile: openshift-ambient

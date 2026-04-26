@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-backend
+  labels:
+    istio.io/use-waypoint: identity-waypoint

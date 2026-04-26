@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: wait-for-rollout
+  namespace: cicd
+spec:
+  params:
+    - name: ARGOCD_URL_C1
+      type: string
+    - name: ARGOCD_URL_C2
+      type: string
+    - name: APP_C1
+      type: string
+      default: identity-staging-c1
+    - name: APP_C2
+      type: string
+      default: identity-staging-c2
+  steps:
+    - name: wait
+      image: quay.io/argoproj/argocd:v2.13.2
+      env:
+        - name: ARGOCD_C1_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: argocd-tokens
+              key: c1
+        - name: ARGOCD_C2_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: argocd-tokens
+              key: c2
+      script: |
+        #!/bin/sh
+        set -e
+        argocd login $(params.ARGOCD_URL_C1) --auth-token "$ARGOCD_C1_TOKEN" --grpc-web --insecure
+        argocd app wait $(params.APP_C1) --health --sync --timeout 300
+        argocd login $(params.ARGOCD_URL_C2) --auth-token "$ARGOCD_C2_TOKEN" --grpc-web --insecure
+        argocd app wait $(params.APP_C2) --health --sync --timeout 300

@@ -1,0 +1,43 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: identity-listener
+  namespace: cicd
+spec:
+  serviceAccountName: identity-pipeline
+  triggers:
+    - name: github-push
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: secretRef
+              value:
+                secretName: github-webhook-secret
+                secretKey: token
+            - name: eventTypes
+              value: ["push"]
+        - ref:
+            name: cel
+          params:
+            - name: filter
+              value: "body.ref == 'refs/heads/main'"
+      bindings:
+        - ref: identity-binding
+      template:
+        ref: identity-template
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: el-identity-listener
+  namespace: cicd
+spec:
+  to:
+    kind: Service
+    name: el-identity-listener
+  port:
+    targetPort: http-listener
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

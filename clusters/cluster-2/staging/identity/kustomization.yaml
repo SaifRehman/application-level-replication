@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: identity-staging
+resources:
+  - ../../../../platform/identity/base
+configMapGenerator:
+  - name: identity-frontend-config
+    behavior: replace
+    files:
+      - config.js
+images:
+  - name: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-backend
+    newName: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-backend
+    newTag: latest
+  - name: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-frontend
+    newName: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-frontend
+    newTag: latest

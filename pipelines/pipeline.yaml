@@ -1,0 +1,185 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: identity-ci
+  namespace: cicd
+spec:
+  params:
+    - name: GIT_URL
+      type: string
+    - name: GIT_REVISION
+      type: string
+      default: main
+    - name: BACKEND_IMAGE
+      type: string
+      default: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-backend:latest
+    - name: FRONTEND_IMAGE
+      type: string
+      default: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-frontend:latest
+    - name: SONAR_HOST_URL
+      type: string
+    - name: ARGOCD_URL_C1
+      type: string
+    - name: ARGOCD_URL_C2
+      type: string
+    - name: STAGING_TARGET_URL
+      type: string
+  workspaces:
+    - name: source
+  tasks:
+    - name: clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: clustertask
+          - name: name
+            value: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.GIT_URL)
+        - name: revision
+          value: $(params.GIT_REVISION)
+
+    - name: go-test
+      runAfter: [clone]
+      taskRef:
+        name: go-test
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: govulncheck
+      runAfter: [clone]
+      taskRef:
+        name: govulncheck
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: kube-linter
+      runAfter: [clone]
+      taskRef:
+        name: kube-linter
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: sonarqube
+      runAfter: [go-test]
+      taskRef:
+        name: sonarqube-scan
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: SONAR_HOST_URL
+          value: $(params.SONAR_HOST_URL)
+
+    - name: build-backend
+      runAfter: [sonarqube, govulncheck, kube-linter]
+      taskRef:
+        name: buildah-build
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: IMAGE
+          value: $(params.BACKEND_IMAGE)
+        - name: CONTEXT
+          value: backend
+
+    - name: build-frontend
+      runAfter: [sonarqube, govulncheck, kube-linter]
+      taskRef:
+        name: buildah-build
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: IMAGE
+          value: $(params.FRONTEND_IMAGE)
+        - name: CONTEXT
+          value: frontend
+
+    - name: trivy-backend
+      runAfter: [build-backend]
+      taskRef:
+        name: trivy-scan
+      params:
+        - name: IMAGE
+          value: $(params.BACKEND_IMAGE)
+
+    - name: trivy-frontend
+      runAfter: [build-frontend]
+      taskRef:
+        name: trivy-scan
+      params:
+        - name: IMAGE
+          value: $(params.FRONTEND_IMAGE)
+
+    - name: push-backend
+      runAfter: [trivy-backend]
+      taskRef:
+        name: buildah-push
+      params:
+        - name: IMAGE
+          value: $(params.BACKEND_IMAGE)
+
+    - name: push-frontend
+      runAfter: [trivy-frontend]
+      taskRef:
+        name: buildah-push
+      params:
+        - name: IMAGE
+          value: $(params.FRONTEND_IMAGE)
+
+    - name: cosign-backend
+      runAfter: [push-backend]
+      taskRef:
+        name: cosign-sign
+      params:
+        - name: IMAGE
+          value: $(params.BACKEND_IMAGE)
+
+    - name: cosign-frontend
+      runAfter: [push-frontend]
+      taskRef:
+        name: cosign-sign
+      params:
+        - name: IMAGE
+          value: $(params.FRONTEND_IMAGE)
+
+    - name: update-gitops
+      runAfter: [cosign-backend, cosign-frontend]
+      taskRef:
+        name: update-gitops
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: BACKEND_IMAGE
+          value: $(params.BACKEND_IMAGE)
+        - name: FRONTEND_IMAGE
+          value: $(params.FRONTEND_IMAGE)
+
+    - name: wait-rollout
+      runAfter: [update-gitops]
+      taskRef:
+        name: wait-for-rollout
+      params:
+        - name: ARGOCD_URL_C1
+          value: $(params.ARGOCD_URL_C1)
+        - name: ARGOCD_URL_C2
+          value: $(params.ARGOCD_URL_C2)
+
+    - name: zap-baseline
+      runAfter: [wait-rollout]
+      taskRef:
+        name: zap-baseline
+      params:
+        - name: TARGET
+          value: $(params.STAGING_TARGET_URL)

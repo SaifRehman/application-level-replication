@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cosign-sign
+  namespace: cicd
+spec:
+  params:
+    - name: IMAGE
+      type: string
+  steps:
+    - name: sign
+      image: gcr.io/projectsigstore/cosign:v2.4.1
+      env:
+        - name: COSIGN_EXPERIMENTAL
+          value: "1"
+      script: |
+        #!/busybox/sh
+        set -e
+        cosign sign --yes $(params.IMAGE)

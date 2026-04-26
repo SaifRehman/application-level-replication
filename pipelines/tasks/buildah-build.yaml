@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: buildah-build
+  namespace: cicd
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+    - name: CONTEXT
+      type: string
+    - name: DOCKERFILE
+      type: string
+      default: Dockerfile
+  results:
+    - name: digest
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:v1.36
+      workingDir: $(workspaces.source.path)/$(params.CONTEXT)
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        buildah bud --storage-driver=vfs --layers --tls-verify=false \
+          -f $(params.DOCKERFILE) \
+          -t $(params.IMAGE) .
+        buildah images --storage-driver=vfs --quiet $(params.IMAGE) \
+          | head -n1 > $(results.digest.path)

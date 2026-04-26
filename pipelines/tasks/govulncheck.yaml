@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: govulncheck
+  namespace: cicd
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: scan
+      image: golang:1.24
+      workingDir: $(workspaces.source.path)/backend
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        $HOME/go/bin/govulncheck ./...

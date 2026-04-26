@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: identity-backend-env
+data:
+  LISTEN_ADDR: ":8080"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: identity-db
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://yugabyte:yugabyte@yugabyte-ysql.identity-db.svc.cluster.local:5433/yugabyte?sslmode=disable"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: identity-api-key
+type: Opaque
+stringData:
+  api-key: "demo-key-change-me"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-backend
+  labels:
+    app: identity
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: identity
+        component: backend
+        istio.io/dataplane-mode: none
+    spec:
+      containers:
+        - name: backend
+          image: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-backend:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: identity-backend-env
+            - secretRef:
+                name: identity-db
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-backend
+  labels:
+    app: identity
+    component: backend
+spec:
+  selector:
+    app: identity
+    component: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
