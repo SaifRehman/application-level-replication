@@ -21,28 +21,46 @@ spec:
     - name: bump
       image: alpine/git:2.45.2
       workingDir: $(workspaces.source.path)
+      env:
+        - name: GH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-push-token
+              key: token
+              optional: true
       script: |
         #!/bin/sh
         set -e
         apk add --no-cache yq
-        git config user.email "$(params.GIT_USER_EMAIL)"
-        git config user.name "$(params.GIT_USER_NAME)"
+
+        BACKEND_NAME=$(echo "$(params.BACKEND_IMAGE)"  | awk -F: '{print $1}')
+        BACKEND_TAG=$(echo  "$(params.BACKEND_IMAGE)"  | awk -F: '{print $2}')
+        FRONTEND_NAME=$(echo "$(params.FRONTEND_IMAGE)" | awk -F: '{print $1}')
+        FRONTEND_TAG=$(echo  "$(params.FRONTEND_IMAGE)" | awk -F: '{print $2}')
+
         for cluster in cluster-1 cluster-2; do
           file="clusters/${cluster}/staging/identity/kustomization.yaml"
-          yq -i '(.images[] | select(.name | test("identity-backend$"))).newName = strenv(BACKEND_IMG_NAME)' "$file"
-          yq -i '(.images[] | select(.name | test("identity-backend$"))).newTag  = strenv(BACKEND_IMG_TAG)'  "$file"
-          yq -i '(.images[] | select(.name | test("identity-frontend$"))).newName = strenv(FRONTEND_IMG_NAME)' "$file"
-          yq -i '(.images[] | select(.name | test("identity-frontend$"))).newTag  = strenv(FRONTEND_IMG_TAG)'  "$file"
+          BACKEND_NAME="$BACKEND_NAME" BACKEND_TAG="$BACKEND_TAG" \
+            yq -i '(.images[] | select(.name | test("identity-backend$"))).newName = strenv(BACKEND_NAME) | (.images[] | select(.name | test("identity-backend$"))).newTag = strenv(BACKEND_TAG)' "$file"
+          FRONTEND_NAME="$FRONTEND_NAME" FRONTEND_TAG="$FRONTEND_TAG" \
+            yq -i '(.images[] | select(.name | test("identity-frontend$"))).newName = strenv(FRONTEND_NAME) | (.images[] | select(.name | test("identity-frontend$"))).newTag = strenv(FRONTEND_TAG)' "$file"
         done
+
+        git config user.email "$(params.GIT_USER_EMAIL)"
+        git config user.name "$(params.GIT_USER_NAME)"
         git add clusters
-        git commit -m "ci: bump images to ${BACKEND_IMG_TAG}/${FRONTEND_IMG_TAG}" || echo "no changes"
-        git push
-      env:
-        - name: BACKEND_IMG_NAME
-          value: "$(params.BACKEND_IMAGE)"
-        - name: BACKEND_IMG_TAG
-          value: "latest"
-        - name: FRONTEND_IMG_NAME
-          value: "$(params.FRONTEND_IMAGE)"
-        - name: FRONTEND_IMG_TAG
-          value: "latest"
+
+        if git diff --cached --quiet; then
+          echo "no manifest changes"
+          exit 0
+        fi
+
+        git commit -m "ci: bump images to $BACKEND_TAG/$FRONTEND_TAG"
+
+        if [ -n "${GH_TOKEN:-}" ]; then
+          ORIGIN=$(git remote get-url origin | sed "s#https://#https://${GH_TOKEN}@#")
+          git push "$ORIGIN" HEAD:main
+          echo "pushed to remote"
+        else
+          echo "GH_TOKEN not set; commit made locally only (Argo will not see the change)"
+        fi

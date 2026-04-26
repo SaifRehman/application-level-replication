@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+  namespace: cicd
+spec:
+  params:
+    - name: url
+      type: string
+    - name: revision
+      type: string
+      default: main
+  workspaces:
+    - name: output
+  results:
+    - name: commit
+  steps:
+    - name: clone
+      image: alpine/git:2.45.2
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/bin/sh
+        set -e
+        find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        git clone --depth 1 -b $(params.revision) $(params.url) .
+        git rev-parse HEAD | tr -d '\n' > $(results.commit.path)

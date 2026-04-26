@@ -6,16 +6,20 @@ metadata:
 spec:
   workspaces:
     - name: source
-  results:
-    - name: coverage-report
-      description: path to cover.out
   steps:
     - name: test
-      image: golang:1.24
+      image: golang:1.25
       workingDir: $(workspaces.source.path)/backend
+      env:
+        - name: HOME
+          value: /tekton/home
+        - name: GOCACHE
+          value: /tekton/home/go-build
+        - name: GOMODCACHE
+          value: /tekton/home/go-mod
       script: |
         #!/usr/bin/env bash
         set -euo pipefail
         go test ./... -coverprofile=cover.out -covermode=atomic
         go vet ./...
-        echo -n "$(workspaces.source.path)/backend/cover.out" > $(results.coverage-report.path)
+        go tool cover -func=cover.out | tail -3

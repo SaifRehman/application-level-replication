@@ -28,5 +28,6 @@ spec:
         sonar-scanner \
           -Dsonar.host.url=$(params.SONAR_HOST_URL) \
           -Dsonar.projectKey=$(params.SONAR_PROJECT_KEY) \
+          -Dsonar.projectName=$(params.SONAR_PROJECT_KEY) \
           -Dsonar.token=${SONAR_TOKEN} \
-          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.wait=false

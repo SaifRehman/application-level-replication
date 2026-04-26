@@ -18,23 +18,16 @@ spec:
       default: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-frontend:latest
     - name: SONAR_HOST_URL
       type: string
-    - name: ARGOCD_URL_C1
-      type: string
-    - name: ARGOCD_URL_C2
-      type: string
+      default: http://sonarqube.sonarqube.svc:9000
     - name: STAGING_TARGET_URL
       type: string
+      default: http://identity-frontend.identity-staging.svc:8080
   workspaces:
     - name: source
   tasks:
     - name: clone
       taskRef:
-        resolver: cluster
-        params:
-          - name: kind
-            value: clustertask
-          - name: name
-            value: git-clone
+        name: git-clone
       workspaces:
         - name: output
           workspace: source
@@ -121,24 +114,8 @@ spec:
         - name: IMAGE
           value: $(params.FRONTEND_IMAGE)
 
-    - name: push-backend
-      runAfter: [trivy-backend]
-      taskRef:
-        name: buildah-push
-      params:
-        - name: IMAGE
-          value: $(params.BACKEND_IMAGE)
-
-    - name: push-frontend
-      runAfter: [trivy-frontend]
-      taskRef:
-        name: buildah-push
-      params:
-        - name: IMAGE
-          value: $(params.FRONTEND_IMAGE)
-
     - name: cosign-backend
-      runAfter: [push-backend]
+      runAfter: [trivy-backend]
       taskRef:
         name: cosign-sign
       params:
@@ -146,7 +123,7 @@ spec:
           value: $(params.BACKEND_IMAGE)
 
     - name: cosign-frontend
-      runAfter: [push-frontend]
+      runAfter: [trivy-frontend]
       taskRef:
         name: cosign-sign
       params:
@@ -166,18 +143,8 @@ spec:
         - name: FRONTEND_IMAGE
           value: $(params.FRONTEND_IMAGE)
 
-    - name: wait-rollout
-      runAfter: [update-gitops]
-      taskRef:
-        name: wait-for-rollout
-      params:
-        - name: ARGOCD_URL_C1
-          value: $(params.ARGOCD_URL_C1)
-        - name: ARGOCD_URL_C2
-          value: $(params.ARGOCD_URL_C2)
-
     - name: zap-baseline
-      runAfter: [wait-rollout]
+      runAfter: [update-gitops]
       taskRef:
         name: zap-baseline
       params:

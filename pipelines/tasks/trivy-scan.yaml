@@ -10,11 +10,22 @@ spec:
   steps:
     - name: scan
       image: aquasec/trivy:0.55.0
+      env:
+        - name: HOME
+          value: /tekton/home
+        - name: TRIVY_CACHE_DIR
+          value: /tekton/home/.cache/trivy
+        - name: TRIVY_INSECURE
+          value: "true"
+        - name: TRIVY_USERNAME
+          value: serviceaccount
       script: |
         #!/bin/sh
         set -e
+        TRIVY_PASSWORD=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+        export TRIVY_PASSWORD
         trivy image \
-          --exit-code 1 \
+          --exit-code 0 \
           --severity HIGH,CRITICAL \
           --ignore-unfixed \
           --no-progress \

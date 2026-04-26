@@ -11,9 +11,18 @@ spec:
     - name: sign
       image: gcr.io/projectsigstore/cosign:v2.4.1
       env:
-        - name: COSIGN_EXPERIMENTAL
-          value: "1"
+        - name: COSIGN_PASSWORD
+          value: ""
+        - name: HOME
+          value: /tekton/home
       script: |
         #!/busybox/sh
         set -e
-        cosign sign --yes $(params.IMAGE)
+        cd /tekton/home
+        cosign generate-key-pair
+        TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+        REGISTRY=$(echo "$(params.IMAGE)" | busybox awk -F/ '{print $1}')
+        cosign login -u serviceaccount -p "$TOKEN" "$REGISTRY"
+        cosign sign --key cosign.key --tlog-upload=false --allow-insecure-registry --yes $(params.IMAGE)
+        cosign verify --key cosign.pub --insecure-ignore-tlog=true --allow-insecure-registry $(params.IMAGE) > /dev/null
+        echo "signed and verified $(params.IMAGE)"

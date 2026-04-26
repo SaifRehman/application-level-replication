@@ -17,16 +17,31 @@ spec:
   results:
     - name: digest
   steps:
-    - name: build
+    - name: build-and-push
       image: quay.io/buildah/stable:v1.36
       workingDir: $(workspaces.source.path)/$(params.CONTEXT)
       securityContext:
         privileged: true
+      env:
+        - name: HOME
+          value: /tekton/home
       script: |
         #!/usr/bin/env bash
         set -euo pipefail
+
+        mkdir -p $HOME/.config/containers
+        cat > $HOME/.config/containers/registries.conf <<'EOF'
+        unqualified-search-registries = ["docker.io", "registry.access.redhat.com", "gcr.io", "quay.io"]
+        short-name-mode = "permissive"
+        EOF
+
+        TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+        REGISTRY=$(echo "$(params.IMAGE)" | awk -F/ '{print $1}')
+        buildah login -u serviceaccount -p "$TOKEN" --tls-verify=false "$REGISTRY"
         buildah bud --storage-driver=vfs --layers --tls-verify=false \
           -f $(params.DOCKERFILE) \
           -t $(params.IMAGE) .
-        buildah images --storage-driver=vfs --quiet $(params.IMAGE) \
-          | head -n1 > $(results.digest.path)
+        buildah push --storage-driver=vfs --tls-verify=false \
+          $(params.IMAGE) docker://$(params.IMAGE)
+        DIGEST=$(buildah images --storage-driver=vfs --quiet $(params.IMAGE) | head -1)
+        echo -n "$DIGEST" > $(results.digest.path)

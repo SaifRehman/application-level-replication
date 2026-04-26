@@ -8,10 +8,19 @@ spec:
     - name: source
   steps:
     - name: scan
-      image: golang:1.24
+      image: golang:1.25
       workingDir: $(workspaces.source.path)/backend
+      env:
+        - name: HOME
+          value: /tekton/home
+        - name: GOCACHE
+          value: /tekton/home/go-build
+        - name: GOMODCACHE
+          value: /tekton/home/go-mod
+        - name: GOBIN
+          value: /tekton/home/go-bin
       script: |
         #!/usr/bin/env bash
         set -euo pipefail
         go install golang.org/x/vuln/cmd/govulncheck@latest
-        $HOME/go/bin/govulncheck ./...
+        /tekton/home/go-bin/govulncheck ./...
