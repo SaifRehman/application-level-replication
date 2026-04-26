@@ -10,8 +10,8 @@ configMapGenerator:
       - config.js
 images:
   - name: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-backend
-    newName: image-registry.openshift-image-registry.svc
-    newTag: 5000/identity-staging/identity-backend
+    newName: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-backend
+    newTag: latest
   - name: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-frontend
-    newName: image-registry.openshift-image-registry.svc
-    newTag: 5000/identity-staging/identity-frontend
+    newName: image-registry.openshift-image-registry.svc:5000/identity-staging/identity-frontend
+    newTag: latest
