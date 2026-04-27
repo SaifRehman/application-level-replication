@@ -4,13 +4,16 @@ metadata:
   name: update-gitops
   namespace: cicd
 spec:
-  workspaces:
-    - name: source
   params:
     - name: BACKEND_IMAGE
       type: string
     - name: FRONTEND_IMAGE
       type: string
+    - name: GIT_URL
+      type: string
+    - name: GIT_BRANCH
+      type: string
+      default: main
     - name: GIT_USER_EMAIL
       type: string
       default: ci@identity.demo
@@ -20,8 +23,9 @@ spec:
   steps:
     - name: bump
       image: alpine/git:2.45.2
-      workingDir: $(workspaces.source.path)
       env:
+        - name: HOME
+          value: /tekton/home
         - name: GH_TOKEN
           valueFrom:
             secretKeyRef:
@@ -31,19 +35,36 @@ spec:
       script: |
         #!/bin/sh
         set -e
-        apk add --no-cache yq
 
-        BACKEND_NAME=$(echo "$(params.BACKEND_IMAGE)"  | awk -F: '{print $1}')
-        BACKEND_TAG=$(echo  "$(params.BACKEND_IMAGE)"  | awk -F: '{print $2}')
-        FRONTEND_NAME=$(echo "$(params.FRONTEND_IMAGE)" | awk -F: '{print $1}')
-        FRONTEND_TAG=$(echo  "$(params.FRONTEND_IMAGE)" | awk -F: '{print $2}')
+        wget -q -O /tekton/home/yq \
+          https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+        chmod +x /tekton/home/yq
+        YQ=/tekton/home/yq
+
+        if [ -z "${GH_TOKEN:-}" ]; then
+          echo "GH_TOKEN missing — set Secret 'github-push-token' in cicd ns; skipping push"
+          exit 0
+        fi
+
+        AUTHED_URL=$(echo "$(params.GIT_URL)" | sed "s#https://#https://${GH_TOKEN}@#")
+        cd /tekton/home
+        rm -rf repo
+        git clone --depth 1 -b $(params.GIT_BRANCH) "$AUTHED_URL" repo
+        cd repo
+
+        BACKEND_FULL="$(params.BACKEND_IMAGE)"
+        BACKEND_NAME="${BACKEND_FULL%:*}"
+        BACKEND_TAG="${BACKEND_FULL##*:}"
+        FRONTEND_FULL="$(params.FRONTEND_IMAGE)"
+        FRONTEND_NAME="${FRONTEND_FULL%:*}"
+        FRONTEND_TAG="${FRONTEND_FULL##*:}"
 
         for cluster in cluster-1 cluster-2; do
           file="clusters/${cluster}/staging/identity/kustomization.yaml"
-          BACKEND_NAME="$BACKEND_NAME" BACKEND_TAG="$BACKEND_TAG" \
-            yq -i '(.images[] | select(.name | test("identity-backend$"))).newName = strenv(BACKEND_NAME) | (.images[] | select(.name | test("identity-backend$"))).newTag = strenv(BACKEND_TAG)' "$file"
+          BACKEND_NAME="$BACKEND_NAME"   BACKEND_TAG="$BACKEND_TAG" \
+            $YQ -i '(.images[] | select(.name | test("identity-backend$"))).newName = strenv(BACKEND_NAME) | (.images[] | select(.name | test("identity-backend$"))).newTag = strenv(BACKEND_TAG)' "$file"
           FRONTEND_NAME="$FRONTEND_NAME" FRONTEND_TAG="$FRONTEND_TAG" \
-            yq -i '(.images[] | select(.name | test("identity-frontend$"))).newName = strenv(FRONTEND_NAME) | (.images[] | select(.name | test("identity-frontend$"))).newTag = strenv(FRONTEND_TAG)' "$file"
+            $YQ -i '(.images[] | select(.name | test("identity-frontend$"))).newName = strenv(FRONTEND_NAME) | (.images[] | select(.name | test("identity-frontend$"))).newTag = strenv(FRONTEND_TAG)' "$file"
         done
 
         git config user.email "$(params.GIT_USER_EMAIL)"
@@ -51,16 +72,10 @@ spec:
         git add clusters
 
         if git diff --cached --quiet; then
-          echo "no manifest changes"
+          echo "no manifest changes; nothing to push"
           exit 0
         fi
 
-        git commit -m "ci: bump images to $BACKEND_TAG/$FRONTEND_TAG"
-
-        if [ -n "${GH_TOKEN:-}" ]; then
-          ORIGIN=$(git remote get-url origin | sed "s#https://#https://${GH_TOKEN}@#")
-          git push "$ORIGIN" HEAD:main
-          echo "pushed to remote"
-        else
-          echo "GH_TOKEN not set; commit made locally only (Argo will not see the change)"
-        fi
+        git commit -m "ci: bump images to ${BACKEND_TAG}/${FRONTEND_TAG}"
+        git push origin HEAD:$(params.GIT_BRANCH)
+        echo "pushed image-tag bump to $(params.GIT_BRANCH)"

@@ -4,5 +4,5 @@ metadata:
   name: xcluster-config
   namespace: identity-db
 data:
-  stream_name: "c2-to-c1"
-  remote_masters: "yb-master-c2.apps.cluster-4rnqf.4rnqf.sandbox3259.opentlc.com:443"
+  stream_name: "12a62ea0-54cc-4b9a-9f7f-01ae0fb6487d"
+  remote_masters: "yb-masters-c2:7100"

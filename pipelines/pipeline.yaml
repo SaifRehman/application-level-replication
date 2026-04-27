@@ -114,34 +114,19 @@ spec:
         - name: IMAGE
           value: $(params.FRONTEND_IMAGE)
 
-    - name: cosign-backend
-      runAfter: [trivy-backend]
-      taskRef:
-        name: cosign-sign
-      params:
-        - name: IMAGE
-          value: $(params.BACKEND_IMAGE)
-
-    - name: cosign-frontend
-      runAfter: [trivy-frontend]
-      taskRef:
-        name: cosign-sign
-      params:
-        - name: IMAGE
-          value: $(params.FRONTEND_IMAGE)
-
     - name: update-gitops
-      runAfter: [cosign-backend, cosign-frontend]
+      runAfter: [trivy-backend, trivy-frontend]
       taskRef:
         name: update-gitops
-      workspaces:
-        - name: source
-          workspace: source
       params:
         - name: BACKEND_IMAGE
           value: $(params.BACKEND_IMAGE)
         - name: FRONTEND_IMAGE
           value: $(params.FRONTEND_IMAGE)
+        - name: GIT_URL
+          value: $(params.GIT_URL)
+        - name: GIT_BRANCH
+          value: $(params.GIT_REVISION)
 
     - name: zap-baseline
       runAfter: [update-gitops]

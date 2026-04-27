@@ -42,16 +42,16 @@ masterAddresses: ""
 
 gflags:
   master:
-    placement_cloud: "aws"
-    placement_region: "us-east-2"
+    placement_cloud: "isl"
+    placement_region: "dc2"
     placement_zone: "c2"
     leader_failure_max_missed_heartbeat_periods: 10
     replication_factor: 1
     server_broadcast_addresses: "yb-masters-c2:7100"
     use_private_ip: "never"
   tserver:
-    placement_cloud: "aws"
-    placement_region: "us-east-2"
+    placement_cloud: "isl"
+    placement_region: "dc2"
     placement_zone: "c2"
     server_broadcast_addresses: "yb-tservers-c2:9100"
     use_private_ip: "never"
