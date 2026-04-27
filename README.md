@@ -44,38 +44,8 @@ wrapped in a full DevSecOps + GitOps loop around a Go &amp; HTML digital-identit
 Two independent OpenShift clusters each run their own instance of **YugabyteDB**. The two universes are joined by **xCluster bidirectional replication**, transported over a **Skupper service-interconnect tunnel** so no database port is exposed publicly. A simple Go backend writes toc its **local** Yugabyte; the data appears in the peer cluster within
 about a second with no application involvement.
 
-A **Tekton pipeline on cluster 1** (build, test, scan, sign, scan-image,
-scan-app) bumps the image tag in this repo. **OpenShift GitOps on both
-clusters** pulls the new tag and rolls out the change. **Cluster 2 has
-no CI** — it's pure CD, watching the same repo on a different path.
+A **Tekton pipeline on cluster 1** (build, test, scan, sign, scan-image, scan-app) bumps the image tag in this repo. **OpenShift GitOps on both clusters** pulls the new tag and rolls out the change. **Cluster 2 has no CI** — it's pure CD, watching the same repo on a different path.
 
-```
-                       ┌──────────────────────────┐
-                       │  GitHub repo             │
-                       │  github.com/<you>/...    │
-                       └──────────┬───────────────┘
-                                  │ git push
-              ┌───────────────────┴──────────────────────┐
-              │                                          │
-   ┌──────────▼───────────┐                ┌─────────────▼──────────┐
-   │ Cluster 1            │                │ Cluster 2              │
-   │ (CI + CD)            │                │ (CD only)              │
-   │                      │                │                        │
-   │  Tekton (CI)         │                │                        │
-   │   build/scan/sign    │                │                        │
-   │   commit image bump ─┼────────────────┼─►  ArgoCD reconciles   │
-   │                      │   git pull     │                        │
-   │  ArgoCD (CD)         │                │  ArgoCD (CD)           │
-   │   reconciles ◄───────┘                │                        │
-   │                                       │                        │
-   │  identity-frontend                    │  identity-frontend     │
-   │       │                               │       │                │
-   │  identity-backend ─► local DB         │  identity-backend ─► local DB
-   │                            │          │                  │     │
-   │                            └──── xCluster (Skupper) ─────┘     │
-   │                                  bidirectional, async          │
-   └────────────────────────────────────────────────────────────────┘
-```
 
 ---
 
