@@ -33,7 +33,6 @@ wrapped in a full DevSecOps + GitOps loop around a Go &amp; HTML digital-identit
   <img src="https://img.shields.io/badge/kube--linter-policy-326CE5?logo=kubernetes&logoColor=white" alt="kube-linter" />
 </p>
 
-<sub>Every change is either a YAML in this repo or a step documented in <a href="./steps.md"><code>steps.md/</code></a>.</sub>
 
 </div>
 
