@@ -56,7 +56,7 @@ A **Tekton pipeline on cluster 1** (build, test, scan, sign, scan-image, scan-ap
 | **App is unaware of replication** — speaks plain SQL to its local DB | `backend/` (Go + `pgx` + `chi`) |
 | **DevSecOps pipeline** — test, vuln scan, lint, SAST, container scan, DAST | `pipelines/` (OpenShift Pipelines / Tekton on C1) |
 | **GitOps CD across both clusters** from a single source repo | `clusters/cluster-{1,2}/_bootstrap/` (OpenShift GitOps) |
-| **Cross-cluster L4 connectivity** without public DB endpoints | `clusters/cluster-{1,2}/yb-universe/` (Skupper Site/Connector/Listener) |
+| **Cross-cluster L7 connectivity** without public DB endpoints | `clusters/cluster-{1,2}/yb-universe/` (Skupper Site/Connector/Listener) |
 | **Test-first Go backend** with CRUD + 20 unit tests | `backend/internal/identity/*_test.go` |
 
 ---
