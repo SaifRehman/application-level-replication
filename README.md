@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/cncf/artwork/main/projects/kubernetes/icon/color/kubernetes-icon-color.png" height="80" alt="Kubernetes" />
 &nbsp;&nbsp;&nbsp;
-<img src="https://www.svgrepo.com/show/354282/redhat-icon.svg" height="80" alt="Red Hat OpenShift" />
+<img src="https://cdn.simpleicons.org/redhatopenshift/EE0000" height="80" alt="Red Hat OpenShift" />
 &nbsp;&nbsp;&nbsp;
 <img src="https://avatars.githubusercontent.com/u/17074854?s=200&v=4" height="80" alt="YugabyteDB" />
 &nbsp;&nbsp;&nbsp;
@@ -10,7 +10,7 @@
 &nbsp;&nbsp;&nbsp;
 <img src="https://raw.githubusercontent.com/cncf/artwork/main/projects/argo/icon/color/argo-icon-color.png" height="80" alt="ArgoCD" />
 &nbsp;&nbsp;&nbsp;
-<img src="https://raw.githubusercontent.com/cncf/artwork/main/projects/tekton/icon/color/tekton-icon-color.png" height="80" alt="Tekton" />
+<img src="https://cdn.simpleicons.org/tekton/FD495C" height="80" alt="Tekton" />
 
 <h1>application-level-replication</h1>
 
