@@ -1,6 +1,42 @@
-# application-level-replication
+<div align="center">
 
-A two-cluster OpenShift demo of **database-level cross-cluster replication** with a full **DevSecOps + GitOps** loop wrapped around a small Go + plain-HTML "digital identity" CRUD app.
+<img src="https://raw.githubusercontent.com/cncf/artwork/main/projects/kubernetes/icon/color/kubernetes-icon-color.png" height="80" alt="Kubernetes" />
+&nbsp;&nbsp;&nbsp;
+<img src="https://www.svgrepo.com/show/354282/redhat-icon.svg" height="80" alt="Red Hat OpenShift" />
+&nbsp;&nbsp;&nbsp;
+<img src="https://avatars.githubusercontent.com/u/17074854?s=200&v=4" height="80" alt="YugabyteDB" />
+&nbsp;&nbsp;&nbsp;
+<img src="https://avatars.githubusercontent.com/u/68505716?s=200&v=4" height="80" alt="Skupper" />
+&nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/cncf/artwork/main/projects/argo/icon/color/argo-icon-color.png" height="80" alt="ArgoCD" />
+&nbsp;&nbsp;&nbsp;
+<img src="https://raw.githubusercontent.com/cncf/artwork/main/projects/tekton/icon/color/tekton-icon-color.png" height="80" alt="Tekton" />
+
+<h1>application-level-replication</h1>
+
+<p><b>A two-cluster OpenShift demo of database-level cross-cluster replication,<br/>
+wrapped in a full DevSecOps + GitOps loop around a Go &amp; HTML digital-identity app.</b></p>
+
+<p>
+  <img src="https://img.shields.io/badge/OpenShift-4.17-EE0000?logo=redhatopenshift&logoColor=white" alt="OpenShift 4.17" />
+  <img src="https://img.shields.io/badge/YugabyteDB-2025.1.4-FF6900?logo=yugabytedb&logoColor=white" alt="YugabyteDB" />
+  <img src="https://img.shields.io/badge/Skupper-v2-2BB673?logoColor=white" alt="Skupper v2" />
+  <img src="https://img.shields.io/badge/Tekton-Pipelines-FD495C?logo=tekton&logoColor=white" alt="Tekton" />
+  <img src="https://img.shields.io/badge/ArgoCD-GitOps-EF7B4D?logo=argo&logoColor=white" alt="ArgoCD" />
+  <img src="https://img.shields.io/badge/Istio-Ambient-466BB0?logo=istio&logoColor=white" alt="Istio Ambient" />
+  <br/>
+  <img src="https://img.shields.io/badge/Go-1.24-00ADD8?logo=go&logoColor=white" alt="Go" />
+  <img src="https://img.shields.io/badge/SonarQube-SAST-4E9BCD?logo=sonarqube&logoColor=white" alt="SonarQube" />
+  <img src="https://img.shields.io/badge/Trivy-CVE%20scan-1904DA?logo=aqua&logoColor=white" alt="Trivy" />
+  <img src="https://img.shields.io/badge/OWASP%20ZAP-DAST-000000?logo=owasp&logoColor=white" alt="OWASP ZAP" />
+  <img src="https://img.shields.io/badge/govulncheck-SCA-00ADD8?logo=go&logoColor=white" alt="govulncheck" />
+  <img src="https://img.shields.io/badge/kube--linter-policy-326CE5?logo=kubernetes&logoColor=white" alt="kube-linter" />
+</p>
+
+<sub>Every change is either a YAML in this repo or a step documented in <a href="./steps.md"><code>steps.md/</code></a>.</sub>
+
+</div>
+
 ---
 
 ## Overview
