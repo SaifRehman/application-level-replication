@@ -1,4 +1,4 @@
-# 14 — Troubleshooting recipes
+# 14 Troubleshooting recipes
 
 Recovery paths for the things that did break during the build-out.
 
@@ -156,8 +156,7 @@ uses `image: golang:1.25`.
 
 **Symptom:** `mkdir /.cache: permission denied`.
 
-**Cause:** OpenShift restricted SCC runs containers as a random UID
-without write access to `/`.
+**Cause:** OpenShift restricted SCC runs containers as a random UID without write access to `/`.
 
 **Fix (already in the task):** Set `HOME=/tekton/home` plus
 `GOCACHE`, `GOMODCACHE`, `GOBIN` to subdirectories of `/tekton/home`.
