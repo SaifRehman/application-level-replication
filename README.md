@@ -124,17 +124,13 @@ A **Tekton pipeline on cluster 1** (build, test, scan, sign, scan-image, scan-ap
 │   └── skupper-link.sh                AccessToken handshake (the only step
 │                                      that can't be a static manifest)
 │
-└── steps.md/                          step-by-step runbook
-    ├── README.md                      index + cluster facts
-    └── 01-…14-…md                     in-order steps + troubleshooting
+
 ```
 
 ---
 
 ## Step-by-step guide
 
-The full runbook lives in [`steps.md/`](./steps.md/). Each file is the
-exact commands run, what went wrong, and how it was fixed.
 
 | # | Step | What it does |
 |---|---|---|
