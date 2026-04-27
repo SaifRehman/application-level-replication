@@ -82,7 +82,6 @@ A **Tekton pipeline on cluster 1** (build, test, scan, sign, scan-image, scan-ap
 ```
 .
 ├── README.md                          ← you are here
-├── CLAUDE.md                          coding conventions for this repo
 │
 ├── backend/                           Go service (chi + pgx)
 │   ├── cmd/server/main.go
