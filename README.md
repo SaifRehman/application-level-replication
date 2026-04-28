@@ -188,7 +188,6 @@ oc apply -f clusters/cluster-2/_bootstrap/applications.yaml
 ```
 
 For the actual commands, expected output, and recovery paths, follow
-[`steps.md/`](./steps.md/) top to bottom.
 
 ---
 
